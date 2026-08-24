@@ -1,3 +1,10 @@
+"""
+Usage:
+    python test_fetch.py <VIDEO_ID>
+
+Example:
+    python test_fetch.py dQw4w9WgXcQ
+"""
 import os
 import sys
 import time
