@@ -1,6 +1,5 @@
-youtube_api_key_env: "YOUTUBE_API_KEY"   # read from env, never hardcode
+youtube_api_key_env: "YOUTUBE_API_KEY"  
 channels:
-  - { id: "UCxxxxxxxx", category: "religious" }
-  - { id: "UCyyyyyyyy", category: "sexual" }
+  - { id: "UCxHoBXkY88Tb8z1Ssj6CWsQ", category: "news" }
 db_path: "data/vigil.db"
 rate_limit_sec: 1.0
