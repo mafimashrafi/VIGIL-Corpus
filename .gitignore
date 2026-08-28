@@ -1,5 +1,17 @@
 .vscode
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
 .venv
 
 .env
 .idea
+
+**/__pycache__/
+Backend/__pycache__/main.cpython-*/
+__pycache__/
+*.py[cod]
+*$py.class
