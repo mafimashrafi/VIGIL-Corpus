@@ -1,4 +1,4 @@
-CREATE TABLES raw_comments (
+CREATE TABLE raw_comments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     content_hash TEXT NOT NULL UNIQUE,
     raw_text TEXT NOT NULL,
