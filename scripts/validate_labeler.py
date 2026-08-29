@@ -1,17 +1,3 @@
-"""
-Validation script: tests Gemma 4's labeling quality on a small batch BEFORE
-you commit to labeling the full comment corpus with it.
-
-Includes the known tricky cases we identified: religious devotional bait,
-spam engagement templates, emoji-only comments, and Banglish (Latin-script Bangla).
-
-Setup:
-    pip install requests python-dotenv
-    Add to .env:  GEMINI_API_KEY=your_key_here
-
-Usage:
-    python validate_labeler.py
-"""
 import os
 import json
 import time
@@ -19,6 +5,7 @@ import requests
 from dotenv import load_dotenv
 
 load_dotenv()
+print(repr(os.environ.get("GEMINI_API_KEY")))
 
 MODEL = "models/gemma-4-26b-a4b-it"
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/{MODEL}:generateContent"
@@ -47,18 +34,15 @@ Respond with ONLY a JSON object, no other text, in this exact format:
 Comment: "{comment}"
 """
 
-# Known tricky cases from earlier testing, plus placeholders -- replace/add real
-# mined comments here to reach 30-50 total before running a real validation pass.
 TEST_SET = [
     {"text": "নবীকে ভালোবাসেন তাহলে কমেন্ট করেন", "human_label": ["not_harassment"]},
     {"text": "কমেন্ট রেখে গেলাম, যতবার কেও লাইক দিবে ততবার এসে এই গান শুনব", "human_label": ["spam"]},
     {"text": "কে কে ২০২৬ এ শুনতেছেন লাইক করেন", "human_label": ["spam"]},
     {"text": "😂😂😂😂😂", "human_label": ["not_harassment"]},
-    {"text": "tui to ekta beshi boka, kisu janish na", "human_label": ["bully"]},  # Banglish
+    {"text": "tui to ekta beshi boka, kisu janish na", "human_label": ["bully"]},
     {"text": "তোরে মাইরা ফেলবো দেখা হইলে", "human_label": ["threat"]},
     {"text": "তুই একটা মাল, তোর মতো মেয়েদের রাস্তায় দেখলেই বোঝা যায়", "human_label": ["sexual", "bully"]},
     {"text": "ভাই গানটা অসাধারণ হইছে", "human_label": ["not_harassment"]},
-    # --- add ~20-40 more real mined comments here before treating this as final ---
 ]
 
 
@@ -110,7 +94,7 @@ def run_validation():
         else:
             mismatches.append(case["text"])
 
-        time.sleep(1)  # basic rate limiting
+        time.sleep(1)
 
     total = len(TEST_SET)
     rate = (agreements / total) * 100 if total else 0
