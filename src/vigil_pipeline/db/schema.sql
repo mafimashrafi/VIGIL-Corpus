@@ -17,3 +17,16 @@ CREATE TABLE IF NOT EXISTS clean_comments (
     dup_of_id       INTEGER REFERENCES raw_comments(id),
     cleaned_at      TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS labels (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    raw_comment_id  INTEGER NOT NULL REFERENCES raw_comments(id),
+    label           TEXT NOT NULL CHECK(label IN
+                        ('bully','sexual','religious','threat','spam','neutral')),
+    label_source    TEXT NOT NULL CHECK(label_source IN
+                        ('dataset_seed','llm_assisted','human_reviewed')),
+    confidence      REAL,
+    reviewed        INTEGER NOT NULL DEFAULT 0,
+    created_at      TEXT NOT NULL,
+    UNIQUE(raw_comment_id, label, label_source)
+);
