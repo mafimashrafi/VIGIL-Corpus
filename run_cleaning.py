@@ -85,7 +85,7 @@ if __name__ == "__main__":
     config = yaml.safe_load((ROOT / "config" / "config.yaml").read_text())
     db_path = ROOT / config["db_path"]
     conn = sqlite3.connect(db_path)
-    conn.executescript((ROOT / "db" / "schema.sql").read_text())
+    conn.executescript((ROOT / "src" / "vigil_pipeline" / "db" / "schema.sql").read_text())
 
     count = clean_new_comments(conn)
     total_clean = conn.execute("SELECT COUNT(*) FROM clean_comments").fetchone()[0]
