@@ -16,7 +16,7 @@ def main():
     api_key = os.environ["GEMINI_API_KEY"]
 
     config = yaml.safe_load((ROOT / "config" / "config.yaml").read_text())
-    rate_limit = config.get("rate_limit_sec", 1.0)
+    rate_limit = config.get("rate_limit_sec", 0.20)
 
     conn = sqlite3.connect(ROOT / config["db_path"])
     conn.executescript((ROOT / "src" / "vigil_pipeline" / "db" / "schema.sql").read_text())
