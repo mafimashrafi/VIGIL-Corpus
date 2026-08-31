@@ -41,7 +41,7 @@ def call_gemma(comment: str, api_key: str, retries: int = 5) -> dict:
         try:
             resp = requests.post(f"{API_URL}?key={api_key}", headers=headers, json=payload, timeout=60)
         except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
-            wait = 2 ** attempt  # 1, 2, 4, 8, 16 seconds
+            wait = 2 ** attempt  
             print(f"  [WARN] Network error ({type(e).__name__}), retrying in {wait}s "
                   f"(attempt {attempt + 1}/{retries})...")
             time.sleep(wait)
