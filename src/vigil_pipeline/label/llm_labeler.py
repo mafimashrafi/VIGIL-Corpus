@@ -10,9 +10,31 @@ MODEL = "models/gemma-4-26b-a4b-it"
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/{MODEL}:generateContent"
 
 
+RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "labels": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": ["bully", "sexual", "religious", "threat", "spam", "not_harassment"],
+            },
+        },
+        "confidence": {"type": "number"},
+    },
+    "required": ["labels", "confidence"],
+}
+
+
 def call_gemma(comment: str, api_key: str, retries: int = 5) -> dict:
     prompt = TAXONOMY_PROMPT.replace("{comment}", comment)
-    payload = {"contents": [{"parts": [{"text": prompt}]}]}
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "responseMimeType": "application/json",
+            "responseSchema": RESPONSE_SCHEMA,
+        },
+    }
     headers = {"Content-Type": "application/json"}
 
     for attempt in range(retries):
@@ -31,10 +53,10 @@ def call_gemma(comment: str, api_key: str, retries: int = 5) -> dict:
         resp.raise_for_status()
         data = resp.json()
         raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
-        cleaned = raw_text.strip().strip("`").replace("json", "", 1).strip()
         try:
-            return json.loads(cleaned)
+            return json.loads(raw_text)
         except json.JSONDecodeError:
+            print(f"  [WARN] Still unparseable despite responseSchema -- raw output: {raw_text[:200]!r}")
             return {"labels": [], "confidence": 0.0}
 
     print(f"  [WARN] Gave up after {retries} attempts due to network errors -- will retry on next run.")
@@ -63,14 +85,15 @@ def label_new_comments(
     rate_limit_sec: float = 1.0,
 ) -> dict:
     rows = fetch_labelable_rows(conn)
+    print(f"  Found {len(rows)} candidate comment(s) to label.")
     labeled_count = 0
     skipped_unparseable = 0
 
-    for row in rows:
+    for i, row in enumerate(rows, 1):
         try:
             result = call_fn(row["raw_text"], api_key)
         except Exception as e:
-            print(f"  [WARN] Unexpected error labeling row {row['raw_comment_id']}: {e} -- skipping, will retry next run.")
+            print(f"  [{i}/{len(rows)}] WARN: unexpected error on row {row['raw_comment_id']}: {e} -- skipping, will retry next run.")
             skipped_unparseable += 1
             continue
 
@@ -78,8 +101,9 @@ def label_new_comments(
         confidence = result.get("confidence")
 
         if not labels:
+            print(f"  [{i}/{len(rows)}] id={row['raw_comment_id']}: unparseable output, skipping (will retry next run)")
             skipped_unparseable += 1
-            continue  # nothing inserted -> naturally retried next run
+            continue
 
         now = datetime.now(timezone.utc).isoformat()
         for label in labels:
@@ -93,6 +117,7 @@ def label_new_comments(
             )
         labeled_count += 1
         conn.commit()
+        print(f"  [{i}/{len(rows)}] id={row['raw_comment_id']}: {labels} (confidence={confidence})")
         time.sleep(rate_limit_sec)
 
     return {
