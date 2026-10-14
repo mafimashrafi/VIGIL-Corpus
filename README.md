@@ -132,8 +132,7 @@ Vigil_corpus/
 │           └── llm_labeler.py   # Gemma 4 API calls, candidate selection, label propagation
 ├── scripts/
 │   └── validate_labeler.py      # one-off: validates LLM labeling quality before trusting it
-├── tests/
-│   ├── test_upsert_idempotency.py
+├── Tests/
 │   ├── test_normalize.py
 │   ├── test_emoji.py
 │   ├── test_lang_detect.py
